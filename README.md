@@ -78,8 +78,8 @@ Cada cambio se guarda automáticamente en `expedientes.txt`, y al iniciar el pro
 **Requisitos:** Python 3.10 o superior. No necesita instalar librerías.
 
 ```bash
-git clone https://github.com/yamilka-cd/MESA-DE-PARTES-WAWARED-VIRTUAL.git
-cd MESA-DE-PARTES-WAWARED-VIRTUAL
+git clone https://github.com/amiir3k/mesa-partes-digital.git
+cd mesa-partes-digital
 python3 principal.py
 ```
 
@@ -90,7 +90,7 @@ En Windows usa `python principal.py`.
 ## Estructura del repositorio
 
 ```
-MESA-DE-PARTES-WAWARED-VIRTUAL/
+mesa-partes-digital/
 ├── principal.py       # Menú del sistema (while + if/elif)
 ├── funciones.py       # Lógica: registrar, buscar, ordenar, cargar y guardar
 ├── expedientes.txt    # Datos de ejemplo (ficticios); se crea solo si no existe
