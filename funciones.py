@@ -31,7 +31,7 @@ def guardar_expedientes():
 def registrar_expediente():
     print("\n--- REGISTRO DE EXPEDIENTE ---")
 
-    codigo = input("Ingrese el código del expediente: ").strip()
+    codigo = input("Ingrese el código del expediente: ").strip().upper()
 
     for expediente in expedientes:
         if expediente["codigo"] == codigo:
@@ -70,7 +70,7 @@ def registrar_expediente():
 def eliminar_expediente():
     print("\n--- ELIMINAR EXPEDIENTE ---")
 
-    codigo = input("Ingrese el código del expediente: ").strip()
+    codigo = input("Ingrese el código del expediente: ").strip().upper()
 
     for expediente in expedientes:
         if expediente["codigo"] == codigo:
@@ -112,7 +112,7 @@ def buscar_por_dni():
 def buscar_por_codigo():
     print("\n--- BUSCAR POR CÓDIGO ---")
 
-    codigo = input("Ingrese el código: ").strip()
+    codigo = input("Ingrese el código: ").strip().upper()
 
     for expediente in expedientes:
         if expediente["codigo"] == codigo:
@@ -146,4 +146,24 @@ def mostrar_todos():
 
     for expediente in expedientes:
         mostrar_expediente(expediente)
-        
+
+
+def ordenar_por_codigo():
+    print("\n--- ORDENAR POR CÓDIGO ---")
+
+    if not expedientes:
+        print("No hay expedientes registrados.")
+        return
+
+    n = len(expedientes)
+
+    for i in range(n - 1):
+        for j in range(n - 1 - i):
+            if expedientes[j]["codigo"] > expedientes[j + 1]["codigo"]:
+                expedientes[j], expedientes[j + 1] = expedientes[j + 1], expedientes[j]
+
+    guardar_expedientes()
+
+    print("Expedientes ordenados por código:")
+    for expediente in expedientes:
+        print(expediente["codigo"], "-", expediente["nombre"])
