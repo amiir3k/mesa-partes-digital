@@ -5,8 +5,7 @@ from funciones import (
     buscar_por_dni,
     buscar_por_codigo,
     buscar_por_area,
-    mostrar_todos,
-    ordenar_por_codigo
+    mostrar_todos
 )
 
 cargar_expedientes()
@@ -23,36 +22,34 @@ while True:
     print("4. Buscar por codigo")
     print("5. Buscar por area")
     print("6. Mostrar todos los expedientes")
-    print("7. Ordenar por codigo")
-    print("8. Salir")
+    print("7. Salir")
     print("================================")
 
     opcion = input("Seleccione una opcion: ")
 
-    if opcion == "1":
-        registrar_expediente()
+    match opcion:
 
-    elif opcion == "2":
-        eliminar_expediente()
+        case "1":
+            registrar_expediente()
 
-    elif opcion == "3":
-        buscar_por_dni()
+        case "2":
+            eliminar_expediente()
 
-    elif opcion == "4":
-        buscar_por_codigo()
+        case "3":
+            buscar_por_dni()
 
-    elif opcion == "5":
-        buscar_por_area()
+        case "4":
+            buscar_por_codigo()
 
-    elif opcion == "6":
-        mostrar_todos()
+        case "5":
+            buscar_por_area()
 
-    elif opcion == "7":
-        ordenar_por_codigo()
+        case "6":
+            mostrar_todos()
 
-    elif opcion == "8":
-        print("\nGracias por utilizar el sistema.")
-        break
+        case "7":
+            print("\nGracias por utilizar el sistema.")
+            break
 
-    else:
-        print("\nOpcion no valida. Intente nuevamente.")
+        case _:
+            print("\nOpcion no valida. Intente nuevamente.")

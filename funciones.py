@@ -1,51 +1,37 @@
+import json
 import os
 from datetime import datetime
 
 
 expedientes = []
 
-ARCHIVO = "expedientes.txt"
+ARCHIVO = "expedientes.json"
 
 
 def cargar_expedientes():
-    if not os.path.exists(ARCHIVO):
-        return
+    global expedientes
 
-    lineas_malas = 0
+    if os.path.exists(ARCHIVO):
+        try:
+            with open(ARCHIVO, "r", encoding="utf-8") as archivo:
+                datos = json.load(archivo)
 
-    with open(ARCHIVO, "r", encoding="utf-8") as archivo:
-        for linea in archivo:
-            datos = linea.strip().split(";")
+                if isinstance(datos, list):
+                    expedientes = datos
 
-            if len(datos) != 6:
-                lineas_malas += 1
-                continue
-
-            expediente = {
-                "codigo": datos[0],
-                "dni": datos[1],
-                "nombre": datos[2],
-                "area": datos[3],
-                "asunto": datos[4],
-                "fecha": datos[5]
-            }
-            expedientes.append(expediente)
-
-    if lineas_malas > 0:
-        print("Líneas omitidas por formato incorrecto:", lineas_malas)
+        except json.JSONDecodeError:
+            print("El archivo está vacío o contiene datos inválidos.")
 
 
 def guardar_expedientes():
     with open(ARCHIVO, "w", encoding="utf-8") as archivo:
-        for e in expedientes:
-            linea = e["codigo"] + ";" + e["dni"] + ";" + e["nombre"] + ";" + e["area"] + ";" + e["asunto"] + ";" + e["fecha"]
-            archivo.write(linea + "\n")
+        json.dump(expedientes, archivo, ensure_ascii=False, indent=4)
 
 
 def registrar_expediente():
     print("\n--- REGISTRO DE EXPEDIENTE ---")
 
-    codigo = input("Ingrese el código del expediente: ").strip().upper()
+    codigo = input("Ingrese el código del expediente: ").strip()
 
     for expediente in expedientes:
         if expediente["codigo"] == codigo:
@@ -62,12 +48,8 @@ def registrar_expediente():
     area = input("Ingrese el área médica: ").strip()
     asunto = input("Ingrese el asunto del expediente: ").strip()
 
-    if codigo == "" or nombre == "" or area == "" or asunto == "":
+    if not all([codigo, nombre, area, asunto]):
         print("Todos los campos son obligatorios.")
-        return
-
-    if ";" in nombre or ";" in area or ";" in asunto:
-        print("No use el carácter ; en los datos.")
         return
 
     nuevo_expediente = {
@@ -88,7 +70,7 @@ def registrar_expediente():
 def eliminar_expediente():
     print("\n--- ELIMINAR EXPEDIENTE ---")
 
-    codigo = input("Ingrese el código del expediente: ").strip().upper()
+    codigo = input("Ingrese el código del expediente: ").strip()
 
     for expediente in expedientes:
         if expediente["codigo"] == codigo:
@@ -130,7 +112,7 @@ def buscar_por_dni():
 def buscar_por_codigo():
     print("\n--- BUSCAR POR CÓDIGO ---")
 
-    codigo = input("Ingrese el código: ").strip().upper()
+    codigo = input("Ingrese el código: ").strip()
 
     for expediente in expedientes:
         if expediente["codigo"] == codigo:
@@ -164,24 +146,4 @@ def mostrar_todos():
 
     for expediente in expedientes:
         mostrar_expediente(expediente)
-
-def ordenar_por_codigo():
-    print("\n--- ORDENAR POR CÓDIGO ---")
-
-    if not expedientes:
-        print("No hay expedientes registrados.")
-        return
-
-    n = len(expedientes)
-
-    # Ordenamiento burbuja: compara pares vecinos y los intercambia
-    for i in range(n - 1):
-        for j in range(n - 1 - i):
-            if expedientes[j]["codigo"] > expedientes[j + 1]["codigo"]:
-                expedientes[j], expedientes[j + 1] = expedientes[j + 1], expedientes[j]
-
-    guardar_expedientes()
-
-    print("Expedientes ordenados por código:")
-    for expediente in expedientes:
-        print(expediente["codigo"], "-", expediente["nombre"], "-", expediente["area"])
+        
