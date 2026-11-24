@@ -4,7 +4,7 @@
 ![Estado](https://img.shields.io/badge/estado-prototipo%20acad%C3%A9mico-155E6B)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-green)
 
-Prototipo de consola en Python que digitaliza el registro de expedientes de la mesa de partes del área de **Admisión** de un centro de salud del MINSA. Permite **registrar, validar, buscar, ordenar, eliminar y guardar** expedientes en un archivo de texto, sin bases de datos ni librerías externas.
+Prototipo de consola en Python que digitaliza el registro de expedientes de la mesa de partes del área de **Admisión** de un centro de salud del MINSA. Permite **registrar, validar, buscar, eliminar y guardar** expedientes en un archivo JSON, sin bases de datos ni librerías externas (solo módulos estándar de Python).
 
 Proyecto del desafío **«Del archivador al algoritmo: un prototipo para la mesa de partes digital»**, curso *Fundamentos de Programación (CIIN1205P)*, Universidad Privada del Norte.
 
@@ -52,16 +52,15 @@ El diagrama de Ishikawa resume las causas del problema en seis categorías (6M):
 
 | Opción | Función | Qué hace |
 |:-:|---|---|
-| 1 | `registrar_expediente()` | Registra un expediente con la fecha del día. Valida código único, DNI de 8 dígitos, campos obligatorios y que no se use `;` |
+| 1 | `registrar_expediente()` | Registra un expediente con la fecha del día. Valida código único, DNI de 8 dígitos y campos obligatorios |
 | 2 | `eliminar_expediente()` | Elimina un expediente por su código |
 | 3 | `buscar_por_dni()` | Muestra todos los expedientes de un DNI |
 | 4 | `buscar_por_codigo()` | Muestra el expediente con ese código |
 | 5 | `buscar_por_area()` | Muestra los expedientes de un área (sin importar mayúsculas) |
 | 6 | `mostrar_todos()` | Lista todos los expedientes |
-| 7 | `ordenar_por_codigo()` | Ordena por código con el método burbuja y guarda el resultado |
-| 8 | — | Sale del sistema |
+| 7 | — | Sale del sistema |
 
-Cada cambio se guarda automáticamente en `expedientes.txt`, y al iniciar el programa se cargan los expedientes guardados.
+Cada cambio se guarda automáticamente en `expedientes.json`, y al iniciar el programa se cargan los expedientes guardados.
 
 ---
 
@@ -80,10 +79,10 @@ Cada cambio se guarda automáticamente en `expedientes.txt`, y al iniciar el pro
 ```bash
 git clone https://github.com/amiir3k/mesa-partes-digital.git
 cd mesa-partes-digital
-python3 principal.py
+python3 main.py
 ```
 
-En Windows usa `python principal.py`.
+En Windows usa `python main.py`. Se necesita Python 3.10 o superior porque el menú usa `match/case`.
 
 ---
 
@@ -91,9 +90,9 @@ En Windows usa `python principal.py`.
 
 ```
 mesa-partes-digital/
-├── principal.py       # Menú del sistema (while + if/elif)
-├── funciones.py       # Lógica: registrar, buscar, ordenar, cargar y guardar
-├── expedientes.txt    # Datos de ejemplo (ficticios); se crea solo si no existe
+├── main.py            # Menú del sistema (while True + match/case)
+├── funciones.py       # Lógica: registrar, eliminar, buscar, cargar y guardar
+├── expedientes.json   # Datos de ejemplo (ficticios); se crea al registrar el primero
 ├── docs/img/          # Diagramas y capturas usados en este README
 ├── .gitignore
 ├── LICENSE
@@ -104,15 +103,23 @@ mesa-partes-digital/
 
 ## Formato de los datos
 
-`expedientes.txt` guarda **un expediente por línea**, con los campos separados por `;`:
+`expedientes.json` guarda una **lista de diccionarios**, uno por expediente:
 
-```
-codigo;dni;nombre;area;asunto;fecha
-EXP-2026-0007;45871236;Rosa Quispe Mamani;Triaje;Apertura de historia clínica;02/11/2026
+```json
+[
+    {
+        "codigo": "EXP-2026-0007",
+        "dni": "45871236",
+        "nombre": "Rosa Quispe Mamani",
+        "area": "Triaje",
+        "asunto": "Apertura de historia clínica",
+        "fecha": "02/11/2026"
+    }
+]
 ```
 
-- Al cargar, cada línea se separa con `split(";")`. Si una línea no tiene 6 campos, se omite y se avisa.
-- Por eso el sistema no permite escribir `;` dentro de los datos.
+- Al iniciar, `cargar_expedientes()` lo lee con `json.load`; después de cada cambio, `guardar_expedientes()` lo reescribe con `json.dump(..., ensure_ascii=False, indent=4)` para conservar tildes y ñ.
+- Si el archivo está dañado, el programa avisa y arranca con la lista vacía.
 
 ---
 
@@ -128,68 +135,69 @@ EXP-2026-0007;45871236;Rosa Quispe Mamani;Triaje;Apertura de historia clínica;0
 flowchart TD
     A([Inicio]) --> B[cargar_expedientes]
     B --> C[/Mostrar menú y leer opción/]
-    C --> D{¿Opción?}
+    C --> D{match opción}
     D -- 1 --> E[registrar_expediente]
     D -- 2 --> F[eliminar_expediente]
     D -- 3 --> G[buscar_por_dni]
     D -- 4 --> H[buscar_por_codigo]
     D -- 5 --> I[buscar_por_area]
     D -- 6 --> J[mostrar_todos]
-    D -- 7 --> K[ordenar_por_codigo]
-    D -- otra --> L[/Opción no válida/]
-    D -- 8 --> Z([Fin])
-    E & F & G & H & I & J & K & L --> C
+    D -- case _ --> L[/Opción no válida/]
+    D -- 7 --> Z([Fin])
+    E & F & G & H & I & J & L --> C
 ```
 
-### Registro y ordenamiento
+### Registro y búsqueda
 
-| Registro | Ordenamiento burbuja |
+| Registro | Búsqueda por DNI (lineal) |
 |:-:|:-:|
-| ![Flujo registrar](docs/img/flujo-registrar.png) | ![Flujo ordenar](docs/img/flujo-ordenar.png) |
+| ![Flujo registrar](docs/img/flujo-registrar.png) | ![Flujo buscar](docs/img/flujo-buscar.png) |
 
 ### Conceptos aplicados
 
 | Concepto | Dónde |
 |---|---|
-| Estructuras de control | `while True` del menú, `if/elif`, `for` en búsquedas y dos `for` anidados en la burbuja |
-| Funciones | 10 funciones en `funciones.py`; `mostrar_expediente(expediente)` recibe un parámetro |
-| Listas (arreglos) | Lista `expedientes`: `append`, `remove` e intercambio por índice |
-| Cadenas | `strip()`, `upper()`, `lower()`, `isdigit()`, `split(";")` y concatenación |
-| Archivos | `open()` en modo `"r"` y `"w"` con `encoding="utf-8"` |
+| Estructuras de control | `while True` y `match/case` del menú, `if` en validaciones y `for` en búsquedas |
+| Funciones | 9 funciones en `funciones.py`; `mostrar_expediente(expediente)` recibe un parámetro |
+| Listas (arreglos) | Lista `expedientes` de diccionarios: `append` y `remove` |
+| Cadenas | `strip()`, `lower()`, `isdigit()`, `len()` y fecha con `strftime("%d/%m/%Y")` |
+| Archivos | `open()` en modo `"r"` y `"w"` con `encoding="utf-8"`, `json.load` / `json.dump`, `os.path.exists` |
+| Manejo de errores | `try/except json.JSONDecodeError` al cargar |
 
 ### Eficiencia
 
-| Expedientes (n) | Búsqueda lineal (comparaciones) | Burbuja n(n−1)/2 (comparaciones) |
-|---|---|---|
-| 25 (un día) | 25 | 300 |
-| 660 (un mes) | 660 | 217 470 |
-| 7 920 (un año) | 7 920 | 31 359 240 |
+| Expedientes (n) | Búsqueda lineal, peor caso | Guardar + cargar JSON | Tamaño del archivo |
+|---|---|---|---|
+| 25 (un día) | 25 comparaciones | 0,5 ms | 5,4 KB |
+| 660 (un mes) | 660 comparaciones | 6,4 ms | 143 KB |
+| 7 920 (un año) | 7 920 comparaciones (0,7 ms) | 68 ms | 1,7 MB |
 
-La búsqueda lineal es suficiente incluso para un año de datos. La burbuja conviene para volúmenes diarios o mensuales.
+La búsqueda lineal y el archivo JSON son suficientes incluso para un año de datos.
 
 ---
 
 ## Pruebas
 
-Se ejecutaron **18 casos de prueba**, y todos dan el resultado esperado:
+Se ejecutaron **17 casos de prueba**: 16 dan el resultado esperado y 1 muestra una limitación conocida.
 
 | Grupo | Casos |
 |---|---|
 | Registro y persistencia | Registro válido; el expediente sigue al reiniciar |
-| Validaciones | Código repetido, DNI de 7 dígitos, DNI con letra, campo vacío, opción inválida, `;` en los datos |
+| Validaciones | Código repetido, DNI de 7 dígitos, DNI con letra, campo vacío, opción inválida |
 | Búsquedas | Por DNI (con y sin resultados), por código inexistente, por área en minúsculas y área sin registros |
-| Ordenamiento y eliminación | Orden en pantalla y en archivo; eliminar existente e inexistente |
-| Robustez | Código en minúsculas (`exp-2026-0007`) detectado como repetido; línea dañada en el archivo |
+| Eliminación y archivo | Eliminar existente e inexistente; contenido de `expedientes.json` |
+| Robustez | Archivo JSON dañado (avisa y sigue); código en minúsculas (`exp-2026-0007`) **aceptado como nuevo** (limitación) |
 
 ---
 
 ## Limitaciones y trabajo futuro
 
+- [ ] Ordenar los expedientes por código (por ejemplo, con el método burbuja)
+- [ ] Normalizar el código con `.upper()` para detectar duplicados como `exp-2026-0007`
+- [ ] Copia de respaldo (`expedientes.bak`) antes de guardar, para no perder datos si el JSON se daña
 - [ ] Generar el código `EXP-AAAA-NNNN` automáticamente
 - [ ] Volver a pedir solo el dato incorrecto, en lugar de cancelar el registro
 - [ ] Elegir el área de un catálogo numerado
-- [ ] Copia de respaldo (`expedientes.bak`) antes de guardar
-- [ ] Reemplazar la burbuja por `sorted()` cuando haya miles de expedientes
 - [ ] Migrar a una base de datos (SQLite) para varios usuarios
 
 ---
