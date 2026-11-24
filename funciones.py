@@ -146,4 +146,3 @@ def mostrar_todos():
 
     for expediente in expedientes:
         mostrar_expediente(expediente)
-        

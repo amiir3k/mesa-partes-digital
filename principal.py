@@ -27,29 +27,27 @@ while True:
 
     opcion = input("Seleccione una opcion: ")
 
-    match opcion:
+    if opcion == "1":
+        registrar_expediente()
 
-        case "1":
-            registrar_expediente()
+    elif opcion == "2":
+        eliminar_expediente()
 
-        case "2":
-            eliminar_expediente()
+    elif opcion == "3":
+        buscar_por_dni()
 
-        case "3":
-            buscar_por_dni()
+    elif opcion == "4":
+        buscar_por_codigo()
 
-        case "4":
-            buscar_por_codigo()
+    elif opcion == "5":
+        buscar_por_area()
 
-        case "5":
-            buscar_por_area()
+    elif opcion == "6":
+        mostrar_todos()
 
-        case "6":
-            mostrar_todos()
+    elif opcion == "7":
+        print("\nGracias por utilizar el sistema.")
+        break
 
-        case "7":
-            print("\nGracias por utilizar el sistema.")
-            break
-
-        case _:
-            print("\nOpcion no valida. Intente nuevamente.")
+    else:
+        print("\nOpcion no valida. Intente nuevamente.")
