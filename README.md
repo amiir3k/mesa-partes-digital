@@ -4,7 +4,7 @@
 ![Estado](https://img.shields.io/badge/estado-prototipo%20acad%C3%A9mico-155E6B)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-green)
 
-Prototipo de consola en Python que digitaliza el registro de expedientes de la mesa de partes del área de **Admisión** de un centro de salud del MINSA. Permite **registrar, validar, buscar, eliminar y guardar** expedientes en un archivo JSON, sin bases de datos ni librerías externas (solo módulos estándar de Python).
+Prototipo de consola en Python que digitaliza el registro de expedientes de la mesa de partes del área de **Admisión** de un centro de salud del MINSA. Permite **registrar, validar, buscar, ordenar, eliminar y guardar** expedientes en un archivo JSON, sin bases de datos ni librerías externas (solo módulos estándar de Python).
 
 Proyecto del desafío **«Del archivador al algoritmo: un prototipo para la mesa de partes digital»**, curso *Fundamentos de Programación (CIIN1205P)*, Universidad Privada del Norte.
 
@@ -58,7 +58,8 @@ El diagrama de Ishikawa resume las causas del problema en seis categorías (6M):
 | 4 | `buscar_por_codigo()` | Muestra el expediente con ese código |
 | 5 | `buscar_por_area()` | Muestra los expedientes de un área (sin importar mayúsculas) |
 | 6 | `mostrar_todos()` | Lista todos los expedientes |
-| 7 | — | Sale del sistema |
+| 7 | `ordenar_por_codigo()` | Ordena por código con el método burbuja y guarda el resultado |
+| 8 | — | Sale del sistema |
 
 Cada cambio se guarda automáticamente en `expedientes.json`, y al iniciar el programa se cargan los expedientes guardados.
 
@@ -91,7 +92,7 @@ En Windows usa `python main.py`. Se necesita Python 3.10 o superior porque el me
 ```
 mesa-partes-digital/
 ├── main.py            # Menú del sistema (while True + match/case)
-├── funciones.py       # Lógica: registrar, eliminar, buscar, cargar y guardar
+├── funciones.py       # Lógica: registrar, eliminar, buscar, ordenar, cargar y guardar
 ├── expedientes.json   # Datos de ejemplo (ficticios); se crea al registrar el primero
 ├── docs/img/          # Diagramas y capturas usados en este README
 ├── .gitignore
@@ -143,61 +144,61 @@ flowchart TD
     D -- 5 --> I[buscar_por_area]
     D -- 6 --> J[mostrar_todos]
     D -- case _ --> L[/Opción no válida/]
-    D -- 7 --> Z([Fin])
-    E & F & G & H & I & J & L --> C
+    D -- 7 --> K[ordenar_por_codigo]
+    D -- 8 --> Z([Fin])
+    E & F & G & H & I & J & K & L --> C
 ```
 
-### Registro y búsqueda
+### Registro y ordenamiento
 
-| Registro | Búsqueda por DNI (lineal) |
+| Registro | Ordenamiento burbuja |
 |:-:|:-:|
-| ![Flujo registrar](docs/img/flujo-registrar.png) | ![Flujo buscar](docs/img/flujo-buscar.png) |
+| ![Flujo registrar](docs/img/flujo-registrar.png) | ![Flujo ordenar](docs/img/flujo-ordenar.png) |
 
 ### Conceptos aplicados
 
 | Concepto | Dónde |
 |---|---|
-| Estructuras de control | `while True` y `match/case` del menú, `if` en validaciones y `for` en búsquedas |
-| Funciones | 9 funciones en `funciones.py`; `mostrar_expediente(expediente)` recibe un parámetro |
-| Listas (arreglos) | Lista `expedientes` de diccionarios: `append` y `remove` |
-| Cadenas | `strip()`, `lower()`, `isdigit()`, `len()` y fecha con `strftime("%d/%m/%Y")` |
+| Estructuras de control | `while True` y `match/case` del menú, `if` en validaciones, `for` en búsquedas y dos `for` anidados en la burbuja |
+| Funciones | 10 funciones en `funciones.py`; `mostrar_expediente(expediente)` recibe un parámetro |
+| Listas (arreglos) | Lista `expedientes` de diccionarios: `append`, `remove` e intercambio por índice |
+| Cadenas | `strip()`, `upper()`, `lower()`, `isdigit()`, `len()` y fecha con `strftime("%d/%m/%Y")` |
 | Archivos | `open()` en modo `"r"` y `"w"` con `encoding="utf-8"`, `json.load` / `json.dump`, `os.path.exists` |
 | Manejo de errores | `try/except json.JSONDecodeError` al cargar |
 
 ### Eficiencia
 
-| Expedientes (n) | Búsqueda lineal, peor caso | Guardar + cargar JSON | Tamaño del archivo |
+| Expedientes (n) | Búsqueda lineal (comparaciones) | Burbuja n(n−1)/2 (comparaciones) | Guardar JSON |
 |---|---|---|---|
-| 25 (un día) | 25 comparaciones | 0,5 ms | 5,4 KB |
-| 660 (un mes) | 660 comparaciones | 6,4 ms | 143 KB |
-| 7 920 (un año) | 7 920 comparaciones (0,7 ms) | 68 ms | 1,7 MB |
+| 25 (un día) | 25 | 300 | 0,3 ms |
+| 660 (un mes) | 660 | 217 470 (31 ms) | 3 ms |
+| 7 920 (un año) | 7 920 | 31 359 240 (4,4 s) | 33 ms |
 
-La búsqueda lineal y el archivo JSON son suficientes incluso para un año de datos.
+La búsqueda lineal y el archivo JSON son suficientes incluso para un año de datos. La burbuja conviene para volúmenes diarios o mensuales.
 
 ---
 
 ## Pruebas
 
-Se ejecutaron **17 casos de prueba**: 16 dan el resultado esperado y 1 muestra una limitación conocida.
+Se ejecutaron **17 casos de prueba** y todos dan el resultado esperado.
 
 | Grupo | Casos |
 |---|---|
 | Registro y persistencia | Registro válido; el expediente sigue al reiniciar |
 | Validaciones | Código repetido, DNI de 7 dígitos, DNI con letra, campo vacío, opción inválida |
 | Búsquedas | Por DNI (con y sin resultados), por código inexistente, por área en minúsculas y área sin registros |
-| Eliminación y archivo | Eliminar existente e inexistente; contenido de `expedientes.json` |
-| Robustez | Archivo JSON dañado (avisa y sigue); código en minúsculas (`exp-2026-0007`) **aceptado como nuevo** (limitación) |
+| Ordenamiento y eliminación | Orden en pantalla y en `expedientes.json`; eliminar existente e inexistente |
+| Robustez | Archivo JSON dañado (avisa y sigue); código en minúsculas (`exp-2026-0007`) detectado como repetido |
 
 ---
 
 ## Limitaciones y trabajo futuro
 
-- [ ] Ordenar los expedientes por código (por ejemplo, con el método burbuja)
-- [ ] Normalizar el código con `.upper()` para detectar duplicados como `exp-2026-0007`
 - [ ] Copia de respaldo (`expedientes.bak`) antes de guardar, para no perder datos si el JSON se daña
 - [ ] Generar el código `EXP-AAAA-NNNN` automáticamente
 - [ ] Volver a pedir solo el dato incorrecto, en lugar de cancelar el registro
 - [ ] Elegir el área de un catálogo numerado
+- [ ] Reemplazar la burbuja por `sorted()` cuando haya miles de expedientes
 - [ ] Migrar a una base de datos (SQLite) para varios usuarios
 
 ---
