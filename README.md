@@ -1,4 +1,4 @@
-# Mesa de Partes Digital – Centro de Salud
+# Mesa de Partes Digital – WawaRed
 
 ![Python](https://img.shields.io/badge/Python-3.10%2B-3776AB?logo=python&logoColor=white)
 ![Estado](https://img.shields.io/badge/estado-prototipo%20acad%C3%A9mico-155E6B)
