@@ -12,3 +12,7 @@ env/
 Thumbs.db
 .vscode/
 .idea/
+
+# Archivos que genera el programa
+expedientes_respaldo.json
+cargo_*.txt

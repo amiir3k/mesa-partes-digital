@@ -4,7 +4,7 @@
 ![Estado](https://img.shields.io/badge/estado-prototipo%20acad%C3%A9mico-155E6B)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-green)
 
-Prototipo de consola en Python que digitaliza el registro de expedientes de la mesa de partes del área de **Admisión** de un centro de salud del MINSA. Permite **registrar, validar, buscar, actualizar el estado, ordenar, obtener estadísticas y guardar** expedientes en un archivo JSON, sin bases de datos ni librerías externas (solo módulos estándar de Python).
+Prototipo de consola en Python que digitaliza el registro de expedientes de la mesa de partes del área de **Admisión** de un centro de salud del MINSA. Permite **registrar, validar, buscar, actualizar el estado, ordenar, obtener estadísticas y guardar** expedientes en un archivo JSON con copia de respaldo, sin bases de datos ni librerías externas (solo módulos estándar de Python).
 
 Proyecto del desafío **«Del archivador al algoritmo: un prototipo para la mesa de partes digital»**, curso *Fundamentos de Programación (CIIN1205P)*, Universidad Privada del Norte.
 
@@ -52,20 +52,22 @@ El diagrama de Ishikawa resume las causas del problema en seis categorías (6M):
 
 | Opción | Función | Qué hace |
 |:-:|---|---|
-| 1 | `registrar_expediente()` | Registra un expediente con la fecha del día y estado **Recibido**. Valida código único, DNI de 8 dígitos y campos obligatorios |
-| 2 | `buscar_y_consultar()` | Submenú: buscar por código, por DNI o por área |
-| 3 | `actualizar_tramite()` | Submenú: cambiar el estado del trámite (Recibido → En proceso → Atendido → Archivado) o eliminar un expediente registrado por error |
-| 4 | `listar_y_ordenar()` | Submenú: mostrar todos, ordenar por código (burbuja) o listar por estado |
-| 5 | `estadisticas()` | Total de trámites, registrados hoy, pendientes, conteo y porcentaje por estado y por área, y cuadro área × estado |
+| 1 | `registrar_expediente()` | Pide el DNI (se repite hasta que tenga 8 dígitos), avisa si ese DNI ya tiene un trámite pendiente, pide nombre, área (de un catálogo numerado) y asunto. **Genera el código** `EXP-AAAA-NNNN`, pone la fecha del día y el estado **Recibido**, guarda y escribe el **cargo de recepción** en `cargo_<código>.txt` |
+| 2 | `buscar_y_consultar()` | Buscar por **código**, **DNI**, **nombre** (parcial, sin importar mayúsculas) o **área**; muestra la ficha o una tabla y cuántos se encontraron |
+| 3 | `actualizar_estado()` | Cambia el estado del trámite. Solo puede avanzar: Recibido → En proceso → Atendido → Archivado. Un expediente archivado ya no cambia |
+| 4 | `listar_y_ordenar()` | Listar todos, **ordenar por código, nombre o fecha** (burbuja) o listar por estado |
+| 5 | `estadisticas()` | Total, registrados hoy, pendientes, cantidad y **porcentaje por estado y por área** con barras, área con más trámites y **cuadro área × estado** |
 | 6 | — | Sale del sistema |
 
-Cada cambio se guarda automáticamente en `expedientes.json`, y al iniciar el programa se cargan los expedientes guardados.
+Cada cambio se guarda en `expedientes.json` y en `expedientes_respaldo.json`. Si el archivo principal se daña, al iniciar se recuperan los datos del respaldo.
+
+> Los expedientes no se eliminan: como en una mesa de partes real, un trámite terminado se **archiva** y queda en el historial.
 
 ---
 
 ## Demostración
 
-| Registro y búsqueda tras reiniciar | Validaciones |
+| Registro, cargo y búsqueda tras reiniciar | Validaciones: el dato incorrecto se vuelve a pedir |
 |:-:|:-:|
 | ![Registro](docs/img/demo-registro.png) | ![Validaciones](docs/img/demo-validaciones.png) |
 
@@ -90,13 +92,18 @@ En Windows usa `python main.py`. Se necesita Python 3.10 o superior porque el me
 ```
 mesa-partes-digital/
 ├── main.py            # Menú del sistema (while True + match/case)
-├── funciones.py       # Lógica: registrar, eliminar, buscar, ordenar, cargar y guardar
-├── expedientes.json   # Datos de ejemplo (ficticios); se crea al registrar el primero
+├── datos.py           # Catálogos ESTADOS y AREAS, lista expedientes, cargar y guardar (JSON + respaldo)
+├── validaciones.py    # Pedir DNI, textos y opciones hasta que sean válidos
+├── tramites.py        # Opciones 1 a 4: registrar, buscar, actualizar estado, listar y ordenar
+├── reportes.py        # Opción 5: estadísticas con arreglos paralelos y matriz
+├── expedientes.json   # Datos de ejemplo (ficticios)
 ├── docs/img/          # Diagramas y capturas usados en este README
 ├── .gitignore
 ├── LICENSE
 └── README.md
 ```
+
+Al usar el programa se crean también `expedientes_respaldo.json` y un `cargo_EXP-AAAA-NNNN.txt` por cada registro (están en `.gitignore`).
 
 ---
 
@@ -119,7 +126,7 @@ mesa-partes-digital/
 ```
 
 - Al iniciar, `cargar_expedientes()` lo lee con `json.load`; después de cada cambio, `guardar_expedientes()` lo reescribe con `json.dump(..., ensure_ascii=False, indent=4)` para conservar tildes y ñ.
-- Si el archivo está dañado, el programa avisa y arranca con la lista vacía.
+- Cada vez que se guarda, se escribe también `expedientes_respaldo.json`. Si el archivo principal está dañado, el programa avisa y carga el respaldo; si tampoco existe, arranca con la lista vacía.
 
 ---
 
@@ -133,12 +140,12 @@ mesa-partes-digital/
 
 ```mermaid
 flowchart TD
-    A([Inicio]) --> B[cargar_expedientes]
+    A([Inicio]) --> B[cargar_expedientes<br/>JSON o respaldo]
     B --> C[/Mostrar menú y leer opción/]
     C --> D{match opción}
     D -- 1 --> E[registrar_expediente]
     D -- 2 --> F[buscar_y_consultar]
-    D -- 3 --> G[actualizar_tramite]
+    D -- 3 --> G[actualizar_estado]
     D -- 4 --> H[listar_y_ordenar]
     D -- 5 --> I[estadisticas]
     D -- case _ --> L[/Opción no válida/]
@@ -148,7 +155,7 @@ flowchart TD
 
 ### Registro y ordenamiento
 
-| Registro | Ordenamiento burbuja |
+| Registro | Ordenamiento burbuja por campo |
 |:-:|:-:|
 | ![Flujo registrar](docs/img/flujo-registrar.png) | ![Flujo ordenar](docs/img/flujo-ordenar.png) |
 
@@ -156,12 +163,14 @@ flowchart TD
 
 | Concepto | Dónde |
 |---|---|
-| Estructuras de control | `while True` y `match/case` del menú, `if` en validaciones, `for` en búsquedas y dos `for` anidados en la burbuja |
-| Funciones | 16 funciones en `funciones.py`; `mostrar_expediente(expediente)` recibe un parámetro |
-| Listas (arreglos) | Lista `expedientes` de diccionarios: `append`, `remove` e intercambio por índice; arreglos paralelos `areas` / `matriz` y arreglo bidimensional área × estado en las estadísticas |
-| Cadenas | `strip()`, `upper()`, `lower()`, `title()`, `ljust()`/`rjust()`, `isdigit()`, `len()` y fecha con `strftime("%d/%m/%Y")` |
-| Archivos | `open()` en modo `"r"` y `"w"` con `encoding="utf-8"`, `json.load` / `json.dump`, `os.path.exists` |
-| Manejo de errores | `try/except json.JSONDecodeError` al cargar |
+| Estructuras de control | `while True` y `match/case` del menú; `while` que repite un dato inválido; `if/elif`; `for` en búsquedas y dos `for` anidados en la burbuja |
+| Funciones | 20 funciones en 4 módulos; con parámetros (`mostrar_expediente(e)`, `ordenar_burbuja(campo)`) y con `return` (`es_dni_valido`, `generar_codigo`, `buscar_indice`, `porcentaje`) |
+| Arreglos unidimensionales | Catálogos `ESTADOS` y `AREAS`; lista `expedientes` de diccionarios |
+| Arreglos paralelos | `AREAS[i]` ↔ `por_area[i]` y `ESTADOS[j]` ↔ `por_estado[j]` en las estadísticas |
+| Arreglo bidimensional | `matriz[i][j]`: expedientes del área *i* en el estado *j* |
+| Cadenas | `split("-")`, `zfill(4)`, `strip()`, `upper()`, `lower()`, `title()`, `isdigit()`, `ljust()`/`rjust()`, `in`, fecha con `strftime` |
+| Archivos | `json.load` / `json.dump` con respaldo; `write()` del cargo de recepción en `.txt` |
+| Manejo de errores | `try/except json.JSONDecodeError` con recuperación desde el respaldo |
 
 ### Eficiencia
 
@@ -177,26 +186,29 @@ La búsqueda lineal y el archivo JSON son suficientes incluso para un año de da
 
 ## Pruebas
 
-Se ejecutaron **17 casos de prueba** y todos dan el resultado esperado.
+Se ejecutaron **22 casos de prueba** y todos dan el resultado esperado.
 
 | Grupo | Casos |
 |---|---|
-| Registro y persistencia | Registro válido; el expediente sigue al reiniciar |
-| Validaciones | Código repetido, DNI de 7 dígitos, DNI con letra, campo vacío, opción inválida |
-| Búsquedas | Por DNI (con y sin resultados), por código inexistente, por área en minúsculas y área sin registros |
-| Ordenamiento y eliminación | Orden en pantalla y en `expedientes.json`; eliminar existente e inexistente |
-| Robustez | Archivo JSON dañado (avisa y sigue); código en minúsculas (`exp-2026-0007`) detectado como repetido |
+| Registro y persistencia | Registro válido con código automático y cargo `.txt`; el expediente sigue al reiniciar |
+| Validaciones | DNI de 7 dígitos, DNI con letra, nombre vacío y área fuera de rango se vuelven a pedir; DNI con trámite pendiente avisa; opción de menú inválida |
+| Búsquedas | Código en minúsculas, código inexistente, DNI, parte del nombre y área |
+| Estados | Avanzar de Recibido a En proceso (se guarda); un expediente archivado no cambia |
+| Listar y ordenar | Ordenar por nombre, por fecha y por código (también en el JSON); listar por estado |
+| Estadísticas | Totales, porcentajes por estado y área y cuadro área × estado |
+| Robustez | JSON dañado con respaldo (recupera los datos) y sin respaldo (avisa y sigue) |
 
 ---
 
 ## Limitaciones y trabajo futuro
 
-- [ ] Copia de respaldo (`expedientes.bak`) antes de guardar, para no perder datos si el JSON se daña
-- [ ] Generar el código `EXP-AAAA-NNNN` automáticamente
-- [ ] Volver a pedir solo el dato incorrecto, en lugar de cancelar el registro
-- [ ] Elegir el área de un catálogo numerado
+- [x] Copia de respaldo antes de guardar
+- [x] Generar el código `EXP-AAAA-NNNN` automáticamente
+- [x] Volver a pedir solo el dato incorrecto
+- [x] Elegir el área de un catálogo numerado
 - [ ] Reemplazar la burbuja por `sorted()` cuando haya miles de expedientes
 - [ ] Migrar a una base de datos (SQLite) para varios usuarios
+- [ ] Usuarios y contraseña para proteger los datos personales
 
 ---
 
