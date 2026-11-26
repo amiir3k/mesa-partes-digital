@@ -4,7 +4,7 @@
 ![Estado](https://img.shields.io/badge/estado-prototipo%20acad%C3%A9mico-155E6B)
 ![Licencia](https://img.shields.io/badge/licencia-MIT-green)
 
-Prototipo de consola en Python que digitaliza el registro de expedientes de la mesa de partes del área de **Admisión** de un centro de salud del MINSA. Permite **registrar, validar, buscar, ordenar, eliminar y guardar** expedientes en un archivo JSON, sin bases de datos ni librerías externas (solo módulos estándar de Python).
+Prototipo de consola en Python que digitaliza el registro de expedientes de la mesa de partes del área de **Admisión** de un centro de salud del MINSA. Permite **registrar, validar, buscar, actualizar el estado, ordenar, obtener estadísticas y guardar** expedientes en un archivo JSON, sin bases de datos ni librerías externas (solo módulos estándar de Python).
 
 Proyecto del desafío **«Del archivador al algoritmo: un prototipo para la mesa de partes digital»**, curso *Fundamentos de Programación (CIIN1205P)*, Universidad Privada del Norte.
 
@@ -52,14 +52,12 @@ El diagrama de Ishikawa resume las causas del problema en seis categorías (6M):
 
 | Opción | Función | Qué hace |
 |:-:|---|---|
-| 1 | `registrar_expediente()` | Registra un expediente con la fecha del día. Valida código único, DNI de 8 dígitos y campos obligatorios |
-| 2 | `eliminar_expediente()` | Elimina un expediente por su código |
-| 3 | `buscar_por_dni()` | Muestra todos los expedientes de un DNI |
-| 4 | `buscar_por_codigo()` | Muestra el expediente con ese código |
-| 5 | `buscar_por_area()` | Muestra los expedientes de un área (sin importar mayúsculas) |
-| 6 | `mostrar_todos()` | Lista todos los expedientes |
-| 7 | `ordenar_por_codigo()` | Ordena por código con el método burbuja y guarda el resultado |
-| 8 | — | Sale del sistema |
+| 1 | `registrar_expediente()` | Registra un expediente con la fecha del día y estado **Recibido**. Valida código único, DNI de 8 dígitos y campos obligatorios |
+| 2 | `buscar_y_consultar()` | Submenú: buscar por código, por DNI o por área |
+| 3 | `actualizar_tramite()` | Submenú: cambiar el estado del trámite (Recibido → En proceso → Atendido → Archivado) o eliminar un expediente registrado por error |
+| 4 | `listar_y_ordenar()` | Submenú: mostrar todos, ordenar por código (burbuja) o listar por estado |
+| 5 | `estadisticas()` | Total de trámites, registrados hoy, pendientes, conteo y porcentaje por estado y por área, y cuadro área × estado |
+| 6 | — | Sale del sistema |
 
 Cada cambio se guarda automáticamente en `expedientes.json`, y al iniciar el programa se cargan los expedientes guardados.
 
@@ -114,7 +112,8 @@ mesa-partes-digital/
         "nombre": "Rosa Quispe Mamani",
         "area": "Triaje",
         "asunto": "Apertura de historia clínica",
-        "fecha": "02/11/2026"
+        "fecha": "02/11/2026",
+        "estado": "En proceso"
     }
 ]
 ```
@@ -146,7 +145,7 @@ flowchart TD
     D -- case _ --> L[/Opción no válida/]
     D -- 7 --> K[ordenar_por_codigo]
     D -- 8 --> Z([Fin])
-    E & F & G & H & I & J & K & L --> C
+    E & F & G & H & I & L --> C
 ```
 
 ### Registro y ordenamiento
@@ -160,9 +159,9 @@ flowchart TD
 | Concepto | Dónde |
 |---|---|
 | Estructuras de control | `while True` y `match/case` del menú, `if` en validaciones, `for` en búsquedas y dos `for` anidados en la burbuja |
-| Funciones | 10 funciones en `funciones.py`; `mostrar_expediente(expediente)` recibe un parámetro |
-| Listas (arreglos) | Lista `expedientes` de diccionarios: `append`, `remove` e intercambio por índice |
-| Cadenas | `strip()`, `upper()`, `lower()`, `isdigit()`, `len()` y fecha con `strftime("%d/%m/%Y")` |
+| Funciones | 16 funciones en `funciones.py`; `mostrar_expediente(expediente)` recibe un parámetro |
+| Listas (arreglos) | Lista `expedientes` de diccionarios: `append`, `remove` e intercambio por índice; arreglos paralelos `areas` / `matriz` y arreglo bidimensional área × estado en las estadísticas |
+| Cadenas | `strip()`, `upper()`, `lower()`, `title()`, `ljust()`/`rjust()`, `isdigit()`, `len()` y fecha con `strftime("%d/%m/%Y")` |
 | Archivos | `open()` en modo `"r"` y `"w"` con `encoding="utf-8"`, `json.load` / `json.dump`, `os.path.exists` |
 | Manejo de errores | `try/except json.JSONDecodeError` al cargar |
 
