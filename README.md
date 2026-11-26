@@ -137,14 +137,12 @@ flowchart TD
     B --> C[/Mostrar menú y leer opción/]
     C --> D{match opción}
     D -- 1 --> E[registrar_expediente]
-    D -- 2 --> F[eliminar_expediente]
-    D -- 3 --> G[buscar_por_dni]
-    D -- 4 --> H[buscar_por_codigo]
-    D -- 5 --> I[buscar_por_area]
-    D -- 6 --> J[mostrar_todos]
+    D -- 2 --> F[buscar_y_consultar]
+    D -- 3 --> G[actualizar_tramite]
+    D -- 4 --> H[listar_y_ordenar]
+    D -- 5 --> I[estadisticas]
     D -- case _ --> L[/Opción no válida/]
-    D -- 7 --> K[ordenar_por_codigo]
-    D -- 8 --> Z([Fin])
+    D -- 6 --> Z([Fin])
     E & F & G & H & I & L --> C
 ```
 
